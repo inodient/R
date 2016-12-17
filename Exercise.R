@@ -218,3 +218,5 @@ x[which(x%%2==0)]
 x
 which.min(x)
 which.max(x)
+
+
