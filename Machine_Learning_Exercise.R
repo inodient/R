@@ -6,7 +6,8 @@ dbhandle <- odbcDriverConnect('driver={SQLServerDriver};server=10.32.32.35;datab
 res <- sqlQuery(dbhandle, 'select * from information_schema.tables')
 
 ## DB Connection
-install.packages('/private/var/folders/jy/52qr5ksd1dd66y9vc08z6zhw0000gn/T/RtmphPVqQb/downloaded_packages/RJDBC_0.2-5.tgz', repos = NULL, type="source")
+#install.packages('/private/var/folders/jy/52qr5ksd1dd66y9vc08z6zhw0000gn/T/RtmphPVqQb/downloaded_packages/RJDBC_0.2-5.tgz', repos = NULL, type="source")
+install.packages('RJDBC');
 require(RJDBC)
 library(RJDBC)
 
@@ -16,7 +17,9 @@ if (.Platform$OS.type == "unix"){
   #drv <- JDBC("com.microsoft.sqlserver.jdbc.SQLServerDriver","C:/Program Files/Microsoft SQL Server JDBC Driver 3.0/sqljdbc_3.0/enu/sqljdbc4.jar")
 }
 
-drv <- JDBC("com.microsoft.sqlserver.jdbc.SQLServerDriver", "/Users/changhokang/Downloads/sqljdbc_4.0/enu/sqljdbc4.jar",identifier.quote="`")
+#drv <- JDBC("com.microsoft.sqlserver.jdbc.SQLServerDriver", "/Users/changhokang/Downloads/sqljdbc_4.0/enu/sqljdbc4.jar",identifier.quote="`")
+drv <- JDBC("com.microsoft.sqlserver.jdbc.SQLServerDriver", "D:/Projects/Web/JDBC/sqljdbc_3.0/kor/sqljdbc4.jar",identifier.quote="`")
+
 conn <- dbConnect(drv, "jdbc:sqlserver://10.32.32.34", "sa", "123456!");
 
 
@@ -27,10 +30,11 @@ rm(y);
 x <- c();
 y <- c();
 
-for( i in 0:8 ){
+count = 0;
+for( i in 0:31 ){
     
-  StartDate <- Sys.Date() - (7-i);
-  EndDate <- Sys.Date() - (7-i-1);
+  StartDate <- Sys.Date() - (30-i);
+  EndDate <- Sys.Date() - (30-i-1);
   
   sqlText_Total <- paste( "Select count(Result) AS Total from rddb.dbo.TB_InterfaceResult where DateTime >= 'START' and DateTime < 'END' " );
   sqlText_Success <- paste( "Select count(Result) AS Success from rddb.dbo.TB_InterfaceResult where DateTime >= 'START' and DateTime < 'END' and Result = 'E' " );
@@ -53,8 +57,12 @@ for( i in 0:8 ){
   #x <- c( x, queryResults_Total$Total );
   #y <- c( y, queryResults_Success$Success );
   
-  x[i] <- queryResults_Total$Total;
-  y[i] <- queryResults_Success$Success;
+  if( queryResults_Total$Total > 0 ){
+    x[count] <- queryResults_Total$Total;
+    y[count] <- queryResults_Success$Success;
+    count = count+1;
+  }
+  
   
   #print( summary( queryResults_Total ) );
   #print( summary( queryResults_Success ) );    
@@ -64,10 +72,19 @@ out = lm(y ~ x) # 단순선형회귀
 out_summary <- summary(out) 
 p_value <- pf(out_summary$fstatistic[1], out_summary$fstatistic[2], out_summary$fstatistic[3], lower.tail = FALSE) 
 
-fileConn<-file("/Users/changhokang/git/R/result.txt");
+#fileConn<-file("/Users/changhokang/git/R/result.txt");
+fileConn<-file("C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/Tracking_Result/Result.txt");
+
 writeLines( as.character(out_summary), fileConn );
 close( fileConn );
-write( gsub( "TARGET", p_value, "p_value : TARGET" ), file="/Users/changhokang/git/R/result.txt",append=TRUE )
+
+#write( gsub( "TARGET", p_value, "p_value : TARGET" ), file="/Users/changhokang/git/R/result.txt",append=TRUE )
+write( gsub( "TARGET", p_value, "p_value : TARGET" ), file="C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/Tracking_Result/Result.txt",append=TRUE )
+
+jpeg('C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/views/result.jpg')
+plot(x, y) # plotting
+abline(out) # 회귀선 추가
+dev.off()
 
 #jpeg('09_01.jpg')
 #plot(x, y) # plotting

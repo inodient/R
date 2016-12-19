@@ -1,6 +1,6 @@
 #http://bigbigdata.tistory.com/78
 
-aFile = readLines("C:/__Repo.Workspace/R/Total_Oct.txt");
+aFile = readLines("C:/__Repo.Workspace/R/DI_Academy.txt");
 
 data = sapply(aFile, extractNoun, USE.NAMES=T );
 
@@ -27,22 +27,30 @@ gsub("계열사(제조업)들이","계열사",data);
 #gsub("(다쏘","",data);
 
 
-write(unlist(data), "C:/__Repo.Workspace/R/Total_Oct_Parsing.txt");
+write(unlist(data), "C:/__Repo.Workspace/R/DI_Academy_Parsing.txt");
 
-table_data <-read.table("C:/__Repo.Workspace/R/Total_Oct_Parsing.txt");
+table_data <-read.table("C:/__Repo.Workspace/R/DI_Academy_Parsing.txt");
 
 wordcount<-table(table_data);
 
+install.packages('xlsx');
+library( xlsx );
+
+write.xlsx(wordcount, "C:/__Repo.Workspace/R/DI_Academy_WordCount.xlsx", sheetName="Sheet1");
+
+
+wordcount
+
 #install.packages('RColorBrewer');
-#library(RColorBrewer);
+library(RColorBrewer);
 
 #install.packages('KoNLP');
-#library('KoNLP');
+library('KoNLP');
 
 #install.packages('wordcloud');
-#library('wordcloud');
+library('wordcloud');
 
-wordcloud(names(wordcount), freq=wordcount, scale=c(5,1), rot.per=0.25, min.freq=1.5, random.order=F, random.color=T, colors=brewer.pal(9,"Set1"));
+wordcloud(names(wordcount), freq=wordcount, scale=c(5,1), rot.per=0.25, min.freq=7.5, random.order=F, random.color=T, colors=brewer.pal(9,"Set1"));
 
 
 
