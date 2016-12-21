@@ -8,15 +8,17 @@ conn <- dbConnect(drv, "jdbc:sqlserver://10.32.32.34", "sa", "123456!");
 ## Machine Learning Exercise
 rm(x);
 rm(y);
+rm(z);
 
 x <- c();
 y <- c();
+z <- c();
 
 count = 0;
-for( i in 0:31 ){
+for( i in 0:30 ){
   
-  StartDate <- Sys.Date() - (30-i);
-  EndDate <- Sys.Date() - (30-i-1);
+  StartDate <- Sys.Date() - (31-i);
+  EndDate <- Sys.Date() - (30-i);
   
   sqlText_Total <- paste( "Select count(Result) AS Total from rddb.dbo.TB_InterfaceResult where DateTime >= 'START' and DateTime < 'END' " );
   sqlText_Success <- paste( "Select count(Result) AS Success from rddb.dbo.TB_InterfaceResult where DateTime >= 'START' and DateTime < 'END' and Result = 'E' " );
@@ -31,15 +33,37 @@ for( i in 0:31 ){
   queryResults_Success = dbGetQuery( conn, sqlText_Success );
 
   if( queryResults_Total$Total > 0 ){
-    x[count] <- queryResults_Total$Total;
-    y[count] <- queryResults_Success$Success;
+    print( queryResults_Total$Total );
+    print( queryResults_Success$Success );
+    
+    y[count] <- queryResults_Total$Total;
+    x[count] <- queryResults_Success$Success;
     count = count+1;
   }
 }
 
-out = lm(y ~ x) # 단순선형회귀
+z = c( x/y )
+
+out = lm(z ~ y) # 단순선형회귀
 out_summary <- summary(out) 
 p_value <- pf(out_summary$fstatistic[1], out_summary$fstatistic[2], out_summary$fstatistic[3], lower.tail = FALSE) 
+
+out_summary
+
+pred_y = predict(out, newdata = data.frame(x = x)) # y의 예측값 구하기
+pred_y
+predict(out, newdata = data.frame(x = 100)) # x = 2.3에서의 y의 예측값 구하기
+predict(out, newdata = data.frame(x = c(1, 2.2, 6.7))) # x = 1, 2.2, 6.7에서의 y의 예측값 구하기
+
+#out = lm(y ~ x) # 단순선형회귀
+#out_summary <- summary(out) 
+#p_value <- pf(out_summary$fstatistic[1], out_summary$fstatistic[2], out_summary$fstatistic[3], lower.tail = FALSE) 
+
+#pred_y = predict(out, newdata = data.frame(x = x)) # y의 예측값 구하기
+#pred_y
+#predict(out, newdata = data.frame(x = 100)) # x = 2.3에서의 y의 예측값 구하기
+#predict(out, newdata = data.frame(x = c(1, 2.2, 6.7))) # x = 1, 2.2, 6.7에서의 y의 예측값 구하기
+
 
 #fileConn<-file("/Users/changhokang/git/R/result.txt");
 fileConn<-file("C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/Tracking_Result/Result.txt");
@@ -51,6 +75,6 @@ close( fileConn );
 write( gsub( "TARGET", p_value, "p_value : TARGET" ), file="C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/Tracking_Result/Result.txt",append=TRUE )
 
 jpeg('C:/__Repo.Workspace/Nodejs/EBS_Tracking_System/views/result.jpg')
-plot(x, y) # plotting
+plot(y, z) # plotting
 abline(out) # 회귀선 추가
 dev.off()
